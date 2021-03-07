@@ -7,6 +7,9 @@ export class HttpHeaderInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler):
     Observable<HttpEvent<any>> {
-    return next.handle(req);
+      const dcrReq = req.clone({
+        headers: req.headers /* {RELEASE_MODEL} */
+      });
+      return next.handle(dcrReq);
   }
 }
