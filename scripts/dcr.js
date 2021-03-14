@@ -4,7 +4,7 @@
  * ダークカナリアリリース用のHTTPヘッダーを追加する。
  */
 const env = process.env,
-  releaseModel = env.RELEASE_MODEL | "",
+  releaseModel = env.RELEASE_MODEL || "",
   fs = require("fs");
 
 const addReleaseModelHeader = (releaseModel) => {
