@@ -3,6 +3,7 @@ import { AngularFireDatabase } from '@angular/fire/database';
 import { Observable } from 'rxjs';
 import { Maintenance } from '../model/maintenance.model';
 import { Version } from '../model/version.model';
+import * as semver from 'semver';
 @Injectable({
   providedIn: 'root',
 })
@@ -22,10 +23,31 @@ export class VersionCheckService {
     this.maintenance$.subscribe((maintenance: Maintenance) =>
       this.checkMaintenance(maintenance)
     );
-    this.version$.subscribe((version: Version) => this.checkVersion(version));
+    this.version$.subscribe((version: Version) =>
+      this.checkVersion(this.appVersion, version)
+    );
   }
 
-  private checkMaintenance(maintenance: Maintenance) {}
+  private checkMaintenance(maintenance: Maintenance) {
+    if (!maintenance) {
+      return;
+    }
+  }
 
-  private checkVersion(version: Version) {}
+  private checkVersion(appVersion: string, version: Version) {
+    if (!this.isRequired(appVersion, version)) {
+      return;
+    }
+  }
+
+  private isRequired(appVersion: string, version: Version) {
+    if (
+      !version ||
+      !version.minimumVersion ||
+      semver.gte(appVersion, version.minimumVersion)
+    ) {
+      return false;
+    }
+    return true;
+  }
 }
