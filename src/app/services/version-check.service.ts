@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Maintenance } from '../model/maintenance.model';
 import { Version } from '../model/version.model';
 import * as semver from 'semver';
+import { AlertController } from '@ionic/angular';
 @Injectable({
   providedIn: 'root',
 })
@@ -11,8 +12,12 @@ export class VersionCheckService {
   private readonly appVersion = '1.0.0';
   private maintenance$: Observable<Maintenance>;
   private version$: Observable<Version>;
+  private maintenanceAlert: HTMLIonAlertElement;
 
-  constructor(private db: AngularFireDatabase) {}
+  constructor(
+    private db: AngularFireDatabase,
+    private alertController: AlertController
+  ) {}
 
   public initSetting(): void {
     this.maintenance$ = this.db
@@ -20,18 +25,35 @@ export class VersionCheckService {
       .valueChanges();
     this.version$ = this.db.object<Version>('version').valueChanges();
 
-    this.maintenance$.subscribe((maintenance: Maintenance) =>
-      this.checkMaintenance(maintenance)
+    this.maintenance$.subscribe(
+      async (maintenance: Maintenance) =>
+        await this.checkMaintenance(maintenance)
     );
-    this.version$.subscribe((version: Version) =>
-      this.checkVersion(this.appVersion, version)
+    this.version$.subscribe(
+      async (version: Version) =>
+        await this.checkVersion(this.appVersion, version)
     );
   }
 
-  private checkMaintenance(maintenance: Maintenance) {
+  private async checkMaintenance(maintenance: Maintenance): Promise<void> {
     if (!maintenance) {
       return;
     }
+
+    if (!maintenance.maintenanceFlg) {
+      if (this.maintenanceAlert) {
+        await this.maintenanceAlert.dismiss();
+        this.maintenanceAlert = undefined;
+      }
+      return;
+    }
+
+    this.maintenanceAlert = await this.alertController.create({
+      header: maintenance.title,
+      message: maintenance.message,
+      backdropDismiss: false,
+    });
+    await this.maintenanceAlert.present();
   }
 
   private checkVersion(appVersion: string, version: Version) {
