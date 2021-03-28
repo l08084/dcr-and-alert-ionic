@@ -13,6 +13,7 @@ export class VersionCheckService {
   private maintenance$: Observable<Maintenance>;
   private version$: Observable<Version>;
   private maintenanceAlert: HTMLIonAlertElement;
+  private versionUpAlert: HTMLIonAlertElement;
 
   constructor(
     private db: AngularFireDatabase,
@@ -51,25 +52,29 @@ export class VersionCheckService {
     this.maintenanceAlert = await this.alertController.create({
       header: maintenance.title,
       message: maintenance.message,
-      backdropDismiss: false,
+      backdropDismiss: false, // 背景をクリックしても閉じない
     });
     await this.maintenanceAlert.present();
   }
 
-  private checkVersion(appVersion: string, version: Version) {
-    if (!this.isRequired(appVersion, version)) {
+  private async checkVersion(appVersion: string, version: Version) {
+    if (!version || !version.minimumVersion) {
       return;
     }
-  }
 
-  private isRequired(appVersion: string, version: Version) {
-    if (
-      !version ||
-      !version.minimumVersion ||
-      semver.gte(appVersion, version.minimumVersion)
-    ) {
-      return false;
+    if (semver.gte(appVersion, version.minimumVersion)) {
+      if (this.versionUpAlert) {
+        await this.versionUpAlert.dismiss();
+        this.versionUpAlert = undefined;
+      }
+      return;
     }
-    return true;
+
+    this.versionUpAlert = await this.alertController.create({
+      header: version.title,
+      message: version.message,
+      backdropDismiss: false, // 背景をクリックしても閉じない
+    });
+    await this.versionUpAlert.present();
   }
 }
