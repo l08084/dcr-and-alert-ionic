@@ -26,6 +26,7 @@
     "cordova-plugin-app-version": "^0.1.12",
     "firebase": "^8.3.1",
     "rxjs": "~6.6.0",
+    "semver": "^7.3.5",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.2"
   },
