@@ -8,7 +8,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpHeaderInterceptor } from './http-interceptors/http-header-interceptor';
-import { AppVersion } from '@ionic-native/app-version/ngx';
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -25,7 +24,6 @@ import { AppVersion } from '@ionic-native/app-version/ngx';
       useClass: HttpHeaderInterceptor,
       multi: true,
     },
-    AppVersion,
   ],
   bootstrap: [AppComponent],
 })
