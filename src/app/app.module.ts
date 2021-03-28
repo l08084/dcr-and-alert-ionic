@@ -8,6 +8,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpHeaderInterceptor } from './http-interceptors/http-header-interceptor';
+import { AngularFireModule } from '@angular/fire';
+import { environment } from 'src/environments/environment';
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -16,6 +18,7 @@ import { HttpHeaderInterceptor } from './http-interceptors/http-header-intercept
     HttpClientModule,
     IonicModule.forRoot(),
     AppRoutingModule,
+    AngularFireModule.initializeApp(environment.firebaseConfig),
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
