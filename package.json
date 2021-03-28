@@ -21,7 +21,9 @@
     "@angular/platform-browser": "~11.2.0",
     "@angular/platform-browser-dynamic": "~11.2.0",
     "@angular/router": "~11.2.0",
+    "@ionic-native/app-version": "^5.31.1",
     "@ionic/angular": "^5.5.2",
+    "cordova-plugin-app-version": "^0.1.12",
     "firebase": "^8.3.1",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
@@ -51,5 +53,10 @@
     "tslint": "~6.1.0",
     "typescript": "~4.0.2"
   },
-  "description": "An Ionic project"
+  "description": "An Ionic project",
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-app-version": {}
+    }
+  }
 }
