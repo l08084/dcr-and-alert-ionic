@@ -9,7 +9,9 @@ import { AlertController } from '@ionic/angular';
   providedIn: 'root',
 })
 export class VersionCheckService {
+  // このアプリのバージョン
   private readonly appVersion = '1.0.0';
+
   private maintenance$: Observable<Maintenance>;
   private version$: Observable<Version>;
   private maintenanceAlert: HTMLIonAlertElement;
@@ -20,7 +22,13 @@ export class VersionCheckService {
     private alertController: AlertController
   ) {}
 
+  /**
+   * 初期設定
+   *
+   * @memberof VersionCheckService
+   */
   public initSetting(): void {
+    // Realtime Databaseからデータを取得
     this.maintenance$ = this.db
       .object<Maintenance>('maintenance')
       .valueChanges();
@@ -36,19 +44,30 @@ export class VersionCheckService {
     );
   }
 
+  /**
+   * メンテナンスポップアップを表示する。
+   *
+   * @private
+   * @param {Maintenance} maintenance
+   * @returns {Promise<void>}
+   * @memberof VersionCheckService
+   */
   private async checkMaintenance(maintenance: Maintenance): Promise<void> {
     if (!maintenance) {
       return;
     }
 
     if (!maintenance.maintenanceFlg) {
+      // メンテナンスフラグがOFFだったら処理を中断する
       if (this.maintenanceAlert) {
+        // メンテナンスメッセージが開かれている場合は閉じる
         await this.maintenanceAlert.dismiss();
         this.maintenanceAlert = undefined;
       }
       return;
     }
 
+    // メンテナンスメッセージを表示する
     this.maintenanceAlert = await this.alertController.create({
       header: maintenance.title,
       message: maintenance.message,
@@ -57,19 +76,31 @@ export class VersionCheckService {
     await this.maintenanceAlert.present();
   }
 
+  /**
+   * 強制バージョンアップメッセージを表示する。
+   *
+   * @private
+   * @param {string} appVersion
+   * @param {Version} version
+   * @returns
+   * @memberof VersionCheckService
+   */
   private async checkVersion(appVersion: string, version: Version) {
     if (!version || !version.minimumVersion) {
       return;
     }
 
     if (semver.gte(appVersion, version.minimumVersion)) {
+      // 最低バージョンよりもアプリのバージョンが高かったら処理を中断する
       if (this.versionUpAlert) {
+        // 強制バージョンアップメッセージが開かれている場合は閉じる
         await this.versionUpAlert.dismiss();
         this.versionUpAlert = undefined;
       }
       return;
     }
 
+    // 強制バージョンアップメッセージを表示する
     this.versionUpAlert = await this.alertController.create({
       header: version.title,
       message: version.message,
