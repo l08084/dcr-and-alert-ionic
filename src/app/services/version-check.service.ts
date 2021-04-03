@@ -1,21 +1,25 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/database';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { Maintenance } from '../model/maintenance.model';
 import { Version } from '../model/version.model';
 import * as semver from 'semver';
 import { AlertController } from '@ionic/angular';
+import { filter } from 'rxjs/operators';
+
 @Injectable({
   providedIn: 'root',
 })
 export class VersionCheckService {
-  // このアプリのバージョン
   private readonly appVersion = '1.0.0';
 
   private maintenance$: Observable<Maintenance>;
   private version$: Observable<Version>;
   private maintenanceAlert: HTMLIonAlertElement;
   private versionUpAlert: HTMLIonAlertElement;
+
+  // add this!
+  private isShowVersionUpAlert = new Subject<boolean>();
 
   constructor(
     private db: AngularFireDatabase,
@@ -28,7 +32,6 @@ export class VersionCheckService {
    * @memberof VersionCheckService
    */
   public initSetting(): void {
-    // Realtime Databaseからデータを取得
     this.maintenance$ = this.db
       .object<Maintenance>('maintenance')
       .valueChanges();
@@ -42,6 +45,19 @@ export class VersionCheckService {
       async (version: Version) =>
         await this.checkVersion(this.appVersion, version)
     );
+
+    // add this!
+    this.isShowVersionUpAlert
+      .pipe(
+        filter(
+          (isShowVersionUp: boolean) =>
+            isShowVersionUp && !!this.maintenanceAlert
+        )
+      )
+      .subscribe(async () => {
+        await this.maintenanceAlert.dismiss();
+        this.maintenanceAlert = undefined;
+      });
   }
 
   /**
@@ -57,21 +73,19 @@ export class VersionCheckService {
       return;
     }
 
-    if (!maintenance.maintenanceFlg) {
-      // メンテナンスフラグがOFFだったら処理を中断する
+    // add conditions '|| !!this.versionUpAlert'
+    if (!maintenance.maintenanceFlg || !!this.versionUpAlert) {
       if (this.maintenanceAlert) {
-        // メンテナンスメッセージが開かれている場合は閉じる
         await this.maintenanceAlert.dismiss();
         this.maintenanceAlert = undefined;
       }
       return;
     }
 
-    // メンテナンスメッセージを表示する
     this.maintenanceAlert = await this.alertController.create({
       header: maintenance.title,
       message: maintenance.message,
-      backdropDismiss: false, // 背景をクリックしても閉じない
+      backdropDismiss: false,
     });
     await this.maintenanceAlert.present();
   }
@@ -91,21 +105,25 @@ export class VersionCheckService {
     }
 
     if (semver.gte(appVersion, version.minimumVersion)) {
-      // 最低バージョンよりもアプリのバージョンが高かったら処理を中断する
       if (this.versionUpAlert) {
-        // 強制バージョンアップメッセージが開かれている場合は閉じる
         await this.versionUpAlert.dismiss();
         this.versionUpAlert = undefined;
+
+        // add this!
+        this.isShowVersionUpAlert.next(false);
       }
       return;
     }
 
-    // 強制バージョンアップメッセージを表示する
     this.versionUpAlert = await this.alertController.create({
       header: version.title,
       message: version.message,
-      backdropDismiss: false, // 背景をクリックしても閉じない
+      backdropDismiss: false,
     });
+
+    // add this!
+    this.isShowVersionUpAlert.next(true);
+
     await this.versionUpAlert.present();
   }
 }
