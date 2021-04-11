@@ -108,4 +108,17 @@ export class VersionCheckService {
     });
     await this.versionUpAlert.present();
   }
+
+  /**
+   * アラート/モーダルの奥行きの位置を交換する
+   *
+   * @private
+   * @memberof VersionCheckService
+   */
+  private swapPositions(): void {
+    [this.versionUpAlert.style.zIndex, this.maintenanceAlert.style.zIndex] = [
+      this.maintenanceAlert.style.zIndex,
+      this.versionUpAlert.style.zIndex,
+    ];
+  }
 }
